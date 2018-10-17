@@ -1,7 +1,8 @@
+#include "pch.h"
 #include <list>
 #include <string>
-#include <nodes.hpp>
-#include <Node.hpp>
+#include "nodes.hpp"
+#include "Node.hpp"
 #include <fstream>
 
 int main(){
@@ -12,7 +13,8 @@ int main(){
     }
     while(!resourceFile.eof()){
         std::string dependence;
-        resourceFile.getline()
+        getline(resourceFile, dependence);
+        printf("%s\n",dependence);
     }
     //TODO 建立Node网络，记录网络每一种（个？）资源的dict
     //TODO 实时检查输入

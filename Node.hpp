@@ -1,6 +1,6 @@
 #include <list>
 #include <string>
-#include <nodes.hpp>
+#include "nodes.hpp"
 
 class Node{
     private:
