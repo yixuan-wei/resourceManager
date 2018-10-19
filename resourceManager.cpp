@@ -16,6 +16,13 @@ std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& 
 	return each;
 }
 
+void PrintGraph(std::list<Node*> &nodes) {
+	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
+	{
+
+	}
+}
+
 void SplitString(std::string& s, std::string& result1, std::string& result2) {
 	std::string::size_type pos = s.find(" ");
 	result1 = s.substr(0, pos);
@@ -35,7 +42,7 @@ int main(){
         std::string dependence;
         getline(resourceFile, dependence);
 		if (dependence == "") break;
-		std::cout << dependence << std::endl;
+		//std::cout << dependence << std::endl;
 		std::string dependFrom, dependTo;
 		SplitString(dependence, dependFrom, dependTo);
 		std::cout << dependFrom << " depends on " << dependTo << std::endl;
@@ -54,7 +61,7 @@ int main(){
 			searchTo = nodes.begin();
 		}
 		//TODO update dependence
-		//(*searchFrom)->
+		(*searchFrom)->AddDependence(*searchTo);
     }
 
     //TODO 建立Node网络，记录网络每一种（个？）资源的dict

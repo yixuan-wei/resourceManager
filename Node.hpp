@@ -10,7 +10,7 @@ class Node{
         Node(const char* string);
         ~Node();
         std::string GetName(){return name;}
-        std::list<Node*> GetDependences(){return dependences;}
+        std::list<Node*> GetDependences(){return this->dependences;}
         void SetName(const char* newName){this->name.assign(newName);}
 		void AddDependence(Node* target);
         std::list<Node*>::iterator SearchDependences(const char* dependence);
@@ -29,9 +29,14 @@ Node::~Node(){
 }
 
 void Node::AddDependence(Node* target) {
-	//TODO 检查是否已经存在映射
+	//Test if already exists a dependence before insert this one
 	std::list<Node*>::iterator test = this->SearchDependences((*target).name.c_str());
-	this->dependences.push_front(target);
+	if (test == this->dependences.end()) {
+		this->dependences.push_front(target);
+	}
+	else {
+		printf("Already exists dependence from %s to %s, insertion cancelled\n", this->name, target->name);
+	}
 }
 
 std::list<Node*>::iterator Node::SearchDependences(const char* dependence){
@@ -46,7 +51,7 @@ std::list<Node*>::iterator Node::SearchDependences(const char* dependence){
 
 void Node::DeleteDependence(char* target){
     //TODO 对dependences遍历，检查target
-    for(std::list<Node*>::iterator dependIter = dependences.begin(); dependIter!=dependences.end();dependIter++){
+    for(std::list<Node*>::iterator dependIter = this->dependences.begin(); dependIter!=this->dependences.end();dependIter++){
         if((*dependIter)->GetName()==target){
 
         }
