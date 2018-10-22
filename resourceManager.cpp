@@ -21,9 +21,12 @@ void PrintGraph(std::list<Node*> &nodes) {
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
 		std::cout << (*var)->GetName() << " depends on ";
+		int num = 0;
 		for (std::list<Node*>::iterator depend = (*var)->GetDependencesBegin(); depend != (*var)->GetDependencesEnd(); depend++) {
 			std::cout << (*depend)->GetName() << ", ";
+			num++;
 		}
+		if (num == 0) printf("nothing,");
 		//TODO print whether usable or not
 		printf("\n");
 	}
@@ -32,10 +35,10 @@ void PrintGraph(std::list<Node*> &nodes) {
 
 void PrintInstrHelp() {
 	printf(">>>>Instructions include:\n");
-	printf("	delete n:				delete a node named n from the graph\n");
-	printf("	insert node n:			insert a node named n into the graph\n");
-	printf("	insert dependence m n:	insert a dependence that m depends on n into the graph\n");
-	printf("	q:						quit the resource manager\n");
+	printf("	delete n:               delete a node named n from the graph\n");
+	printf("	insert node n:          insert a node named n into the graph\n");
+	printf("	insert dependence m n:  insert a dependence that m depends on n into the graph\n");
+	printf("	q:                      quit the resource manager\n");
 	printf("--------------------------\n");
 }
 
@@ -96,22 +99,22 @@ int main(){
 		PrintGraph(nodes);
 		printf("Input your next operation\n");
 		std::string instruction;
-		std::cin >> instruction;
+		std::getline(std::cin,instruction);
 		std::list<std::string> temp_instr;
 		SplitString(instruction, temp_instr);
 		instruction = temp_instr.front();
 		//delete a node from graph
 		if (!strcmp(instruction.c_str(),"delete")) {
 			printf("Going to delete a node\n");
-			//TODO 删除一个Node
 			std::list<Node*>::iterator target = SearchFromNodes(nodes, temp_instr.back());
 			if (target == nodes.end()) {
 				printf("ERROR: no such node exists in the graph\n");
 				continue;
 			}
 			else {
-				//TODO delete target from nodes
-				//TODO delete target
+				nodes.erase(target);
+				delete *target;
+				continue;
 			}
 		}
 		else if (!strcmp(instruction.c_str(), "insert")) {
