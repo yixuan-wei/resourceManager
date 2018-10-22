@@ -17,20 +17,26 @@ std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& 
 }
 
 void PrintGraph(std::list<Node*> &nodes) {
+	printf("Current Graph View:\n");
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
 		std::cout << (*var)->GetName() << " depends on ";
-		std::list<Node*> temp_depend = (*var)->GetDependences();
-		for (std::list<Node*>::iterator depend = temp_depend.begin(); depend != temp_depend.end(); depend++) {
+		for (std::list<Node*>::iterator depend = (*var)->GetDependencesBegin(); depend != (*var)->GetDependencesEnd(); depend++) {
 			std::cout << (*depend)->GetName() << ", ";
 		}
 		//TODO print whether usable or not
+		printf("\n");
 	}
+	printf("--------------------\n");
 }
 
 void PrintInstrHelp() {
-	printf("delete n: delete a node named n from the graph\n");
-	printf("insert node n: insert a node named n into the graph\n");
+	printf(">>>>Instructions include:\n");
+	printf("	delete n:				delete a node named n from the graph\n");
+	printf("	insert node n:			insert a node named n into the graph\n");
+	printf("	insert dependence m n:	insert a dependence that m depends on n into the graph\n");
+	printf("	q:						quit the resource manager\n");
+	printf("--------------------------\n");
 }
 
 void SplitString(std::string& s, std::list<std::string> &result) {
@@ -47,6 +53,7 @@ int main(){
     //读取resource.txt
 	//TODO 建立所有依赖的dict
 	std::list<Node*> nodes;
+	printf("Read in the resource.txt\n");
     std::ifstream resourceFile(".\\resource.txt",std::ios::in);
     if(!resourceFile.is_open()){
         std::cout<<"Opening resource file failed"<<std::endl;
@@ -82,19 +89,30 @@ int main(){
 		//TODO update dependence
 		(*searchFrom)->AddDependence(*searchTo);
     }
-	//TODO 打印所有指令说明以及help指令
+	printf("--------Reading Finished---------\n");
+	PrintInstrHelp();
 	//TODO examine the input and execute corresponding function all the time
 	while (true) {
 		PrintGraph(nodes);
+		printf("Input your next operation\n");
 		std::string instruction;
 		std::cin >> instruction;
 		std::list<std::string> temp_instr;
 		SplitString(instruction, temp_instr);
 		instruction = temp_instr.front();
-		
+		//delete a node from graph
 		if (!strcmp(instruction.c_str(),"delete")) {
 			printf("Going to delete a node\n");
 			//TODO 删除一个Node
+			std::list<Node*>::iterator target = SearchFromNodes(nodes, temp_instr.back());
+			if (target == nodes.end()) {
+				printf("ERROR: no such node exists in the graph\n");
+				continue;
+			}
+			else {
+				//TODO delete target from nodes
+				//TODO delete target
+			}
 		}
 		else if (!strcmp(instruction.c_str(), "insert")) {
 			temp_instr.pop_front();

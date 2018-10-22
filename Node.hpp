@@ -10,8 +10,9 @@ class Node{
     public:
         Node(const char* string);
         ~Node();
-        std::string GetName(){return name;}
-        std::list<Node*> GetDependences(){return this->dependences;}
+        std::string GetName(){return this->name;}
+        std::list<Node*>::iterator GetDependencesBegin(){ return this->dependences.begin();}
+		std::list<Node*>::iterator GetDependencesEnd() { return this->dependences.end(); }
         void SetName(const char* newName){this->name.assign(newName);}
 		void AddDependence(Node* target);
         std::list<Node*>::iterator SearchDependences(const char* dependence);
@@ -20,6 +21,7 @@ class Node{
 
 Node::Node(const char* string){
             SetName(string);
+			this->usable = true;
             //UpdateDependence(dependence);
             //nodes.push_back(this);
 }
@@ -27,7 +29,6 @@ Node::Node(const char* string){
 Node::~Node(){
     //DeleteFromNodes(this->GetName());
     this->dependences.clear();
-	usable = true;
 }
 
 void Node::AddDependence(Node* target) {
@@ -37,7 +38,7 @@ void Node::AddDependence(Node* target) {
 		this->dependences.push_front(target);
 	}
 	else {
-		printf("Already exists dependence from %s to %s, insertion cancelled\n", this->name, target->name);
+		printf("Already exists dependence from %s to %s, insertion cancelled\n", this->name.c_str(), target->name.c_str());
 	}
 }
 
