@@ -19,32 +19,51 @@ std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& 
 void PrintGraph(std::list<Node*> &nodes) {
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
-
+		std::cout << (*var)->GetName() << " depends on ";
+		std::list<Node*> temp_depend = (*var)->GetDependences();
+		for (std::list<Node*>::iterator depend = temp_depend.begin(); depend != temp_depend.end(); depend++) {
+			std::cout << (*depend)->GetName() << ", ";
+		}
+		//TODO print whether usable or not
 	}
 }
 
-void SplitString(std::string& s, std::string& result1, std::string& result2) {
+void PrintInstrHelp() {
+	printf("delete n: delete a node named n from the graph\n");
+	printf("insert node n: insert a node named n into the graph\n");
+}
+
+void SplitString(std::string& s, std::list<std::string> &result) {
 	std::string::size_type pos = s.find(" ");
-	result1 = s.substr(0, pos);
-	result2 = s.substr(pos+1);
+	while (pos != std::string::npos) {
+		result.push_back(s.substr(0, pos));
+		s = s.substr(pos + 1);
+		pos = s.find(" ");
+	}
+	result.push_back(s);
 }
 
 int main(){
     //读取resource.txt
-	//TODO 建立依赖的dict
+	//TODO 建立所有依赖的dict
 	std::list<Node*> nodes;
     std::ifstream resourceFile(".\\resource.txt",std::ios::in);
     if(!resourceFile.is_open()){
         std::cout<<"Opening resource file failed"<<std::endl;
 		return 1;
     }
+	//read in and process the resource file
     while(!resourceFile.eof()){
         std::string dependence;
         getline(resourceFile, dependence);
 		if (dependence == "") break;
 		//std::cout << dependence << std::endl;
 		std::string dependFrom, dependTo;
-		SplitString(dependence, dependFrom, dependTo);
+		std::list<std::string> temp_str;
+		SplitString(dependence, temp_str);
+		dependFrom = temp_str.front();
+		dependTo = temp_str.back();
+		temp_str.clear();
 		std::cout << dependFrom << " depends on " << dependTo << std::endl;
 		//test if node already exists & create node
 		std::list<Node*>::iterator searchFrom = SearchFromNodes(nodes, dependFrom);
@@ -63,10 +82,43 @@ int main(){
 		//TODO update dependence
 		(*searchFrom)->AddDependence(*searchTo);
     }
-
-    //TODO 建立Node网络，记录网络每一种（个？）资源的dict
-    //TODO 实时检查输入
-    //TODO 检查删除节点的功能
-    //TODO 退出功能
+	//TODO 打印所有指令说明以及help指令
+	//TODO examine the input and execute corresponding function all the time
+	while (true) {
+		PrintGraph(nodes);
+		std::string instruction;
+		std::cin >> instruction;
+		std::list<std::string> temp_instr;
+		SplitString(instruction, temp_instr);
+		instruction = temp_instr.front();
+		
+		if (!strcmp(instruction.c_str(),"delete")) {
+			printf("Going to delete a node\n");
+			//TODO 删除一个Node
+		}
+		else if (!strcmp(instruction.c_str(), "insert")) {
+			temp_instr.pop_front();
+			std::string sub_instr = temp_instr.front();
+			if (sub_instr.c_str() == "node") {
+				printf("Going to insert a node\n");
+			}
+			else if (sub_instr.c_str() == "dependence") {
+				printf("Going to insert a dependence\n");
+			}
+			else {
+				printf("insert instruction input failed, check format!\n");
+				printf("Going to print help\n");
+			}
+		}
+		else if (!strcmp(instruction.c_str(), "q")) {
+			printf("Ready to quit the manager\n");
+			//TODO 删除所有内存（nodes,和里面每一项的所有依赖）
+			//TODO 保存所有node和依赖关系
+		}
+		else{
+			//TODO 检查并尝试进行节点删除，否则打印帮助
+			printf("Going to print help\n");
+		}
+	}
     return 0;
 }

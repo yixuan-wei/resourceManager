@@ -6,6 +6,7 @@ class Node{
     private:
         std::string name;
         std::list<Node*> dependences;
+		bool usable;
     public:
         Node(const char* string);
         ~Node();
@@ -26,6 +27,7 @@ Node::Node(const char* string){
 Node::~Node(){
     //DeleteFromNodes(this->GetName());
     this->dependences.clear();
+	usable = true;
 }
 
 void Node::AddDependence(Node* target) {
