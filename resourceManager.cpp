@@ -5,6 +5,7 @@
 #include "Node.hpp"
 #include <fstream>
 #include <iostream>
+#include <map>
 
 std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& target) {
 	std::list<Node*>::iterator each;
@@ -16,14 +17,21 @@ std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& 
 	return each;
 }
 
+void DeleteFromNodes(std::list<Node*> &nodes, std::string& target) {
+	for (auto each = nodes.begin(); each != nodes.end(); each++) {
+		(*each)->DeleteDependence(target.c_str());
+	}
+	printf("Deleting %s finished\n", target.c_str());
+}
+
 void PrintGraph(std::list<Node*> &nodes) {
 	printf("Current Graph View:\n");
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
-		std::cout << (*var)->GetName() << " depends on ";
+		printf("%s depends on ", (*var)->GetName().c_str());
 		int num = 0;
 		for (std::list<Node*>::iterator depend = (*var)->GetDependencesBegin(); depend != (*var)->GetDependencesEnd(); depend++) {
-			std::cout << (*depend)->GetName() << ", ";
+			printf("%s, ", (*depend)->GetName().c_str());
 			num++;
 		}
 		if (num == 0) printf("nothing,");
@@ -54,12 +62,13 @@ void SplitString(std::string& s, std::list<std::string> &result) {
 
 int main(){
     //读取resource.txt
-	//TODO 建立所有依赖的dict
+	//TODO 建立所有依赖的map
 	std::list<Node*> nodes;
+
 	printf("Read in the resource.txt\n");
     std::ifstream resourceFile(".\\resource.txt",std::ios::in);
     if(!resourceFile.is_open()){
-        std::cout<<"Opening resource file failed"<<std::endl;
+        printf("Opening resource file failed\n");
 		return 1;
     }
 	//read in and process the resource file
@@ -67,14 +76,14 @@ int main(){
         std::string dependence;
         getline(resourceFile, dependence);
 		if (dependence == "") break;
-		//std::cout << dependence << std::endl;
+
 		std::string dependFrom, dependTo;
 		std::list<std::string> temp_str;
 		SplitString(dependence, temp_str);
 		dependFrom = temp_str.front();
 		dependTo = temp_str.back();
 		temp_str.clear();
-		std::cout << dependFrom << " depends on " << dependTo << std::endl;
+		printf( "%s depends on %s\n", dependFrom,dependTo);
 		//test if node already exists & create node
 		std::list<Node*>::iterator searchFrom = SearchFromNodes(nodes, dependFrom);
 		if (nodes.empty() || searchFrom == nodes.end()) {
@@ -112,11 +121,14 @@ int main(){
 				continue;
 			}
 			else {
-				nodes.erase(target);
-				delete *target;
+				std::string targetName = (*target)->GetName();
+				delete (*target);
+				nodes.remove(*target);
+				DeleteFromNodes(nodes, targetName);
 				continue;
 			}
 		}
+		//insert a node or a dependence into graph
 		else if (!strcmp(instruction.c_str(), "insert")) {
 			temp_instr.pop_front();
 			std::string sub_instr = temp_instr.front();
