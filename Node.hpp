@@ -13,6 +13,9 @@ class Node{
         std::string GetName(){return this->name;}
         std::list<Node*>::iterator GetDependencesBegin(){ return this->dependences.begin();}
 		std::list<Node*>::iterator GetDependencesEnd() { return this->dependences.end(); }
+		bool GetUsable() { return this->usable; }
+		void SetNotUsable() { this->usable = false; }
+		void SetUsable() { this->usable = true; }
         void SetName(const char* newName){this->name.assign(newName);}
 		void AddDependence(Node* target);
         std::list<Node*>::iterator SearchDependences(const char* dependence);
@@ -23,7 +26,6 @@ Node::Node(const char* string){
             SetName(string);
 			this->usable = true;
             //UpdateDependence(dependence);
-            //nodes.push_back(this);
 }
 
 void Node::AddDependence(Node* target) {
@@ -48,12 +50,10 @@ std::list<Node*>::iterator Node::SearchDependences(const char* dependence){
 }
 
 void Node::DeleteDependence(const char* target){
-    //TODO 对dependences遍历，检查target
 	std::list<Node*>::iterator test = this->SearchDependences(target);
 	if (test != this->dependences.end()) {
 		this->dependences.remove(*test);
-	}
-	else {
-		printf("%s does not depend on %s\n", this->name.c_str(), target);
+		printf("Deleted dependence from %s to %s\n", this->name.c_str(), target);
+		this->usable = false;
 	}
 }

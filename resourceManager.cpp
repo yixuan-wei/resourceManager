@@ -7,7 +7,7 @@
 #include <iostream>
 #include <map>
 
-std::list<Node*>::iterator SearchFromNodes(std::list<Node*> &nodes,std::string& target) {
+auto SearchFromNodes(std::list<Node*> &nodes,std::string& target) {
 	std::list<Node*>::iterator each;
 	for (each = nodes.begin(); each != nodes.end(); each++) {
 		if (!strcmp((*each)->GetName().c_str(), target.c_str())) {
@@ -24,18 +24,43 @@ void DeleteFromNodes(std::list<Node*> &nodes, std::string& target) {
 	printf("Deleting %s finished\n", target.c_str());
 }
 
+void UpdateUsableNodes(std::list<Node*> &nodes, std::map<std::string, std::list<std::string>> &depends) {
+	for (auto each = nodes.begin(); each != nodes.end(); each++) {
+		std::string curName = (*each)->GetName();
+		auto curDepend = depends.find(curName);
+		bool found = false;
+		for (auto d = curDepend->second.begin(); d != curDepend->second.end(); d++) {
+			found = false;
+			for (auto t = (*each)->GetDependencesBegin(); t != (*each)->GetDependencesEnd(); t++) {
+				if (!strcmp((*d).c_str(), (*t)->GetName().c_str())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				(*each)->SetNotUsable();
+				break;
+			}
+		}
+		if (found) (*each)->SetUsable();
+	}
+}
+
 void PrintGraph(std::list<Node*> &nodes) {
 	printf("Current Graph View:\n");
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
-		printf("%s depends on ", (*var)->GetName().c_str());
+		printf("    %s is ");
+		// print whether usable or not
+		if ((*var)->GetUsable) printf("usable");
+		else printf("not usable");
+		printf(",depends on ", (*var)->GetName().c_str());
 		int num = 0;
 		for (std::list<Node*>::iterator depend = (*var)->GetDependencesBegin(); depend != (*var)->GetDependencesEnd(); depend++) {
 			printf("%s, ", (*depend)->GetName().c_str());
 			num++;
 		}
 		if (num == 0) printf("nothing,");
-		//TODO print whether usable or not
 		printf("\n");
 	}
 	printf("--------------------\n");
@@ -62,8 +87,9 @@ void SplitString(std::string& s, std::list<std::string> &result) {
 
 int main(){
     //读取resource.txt
-	//TODO 建立所有依赖的map
-	std::list<Node*> nodes;
+	//建立所有依赖的map
+	std::list<Node*> nodes; //store all existing nodes
+	std::map<std::string, std::list<std::string>> depends; //store all the dependences from original txt
 
 	printf("Read in the resource.txt\n");
     std::ifstream resourceFile(".\\resource.txt",std::ios::in);
@@ -73,17 +99,33 @@ int main(){
     }
 	//read in and process the resource file
     while(!resourceFile.eof()){
+		//read in a line from txt
         std::string dependence;
         getline(resourceFile, dependence);
 		if (dependence == "") break;
-
+		// cut this line into separate contents
 		std::string dependFrom, dependTo;
 		std::list<std::string> temp_str;
 		SplitString(dependence, temp_str);
 		dependFrom = temp_str.front();
 		dependTo = temp_str.back();
 		temp_str.clear();
-		printf( "%s depends on %s\n", dependFrom,dependTo);
+		printf( "%s depends on %s\n", dependFrom.c_str(),dependTo.c_str());
+		//insert dependence into depends
+		auto depend = depends.find(dependFrom);
+		if (depend != depends.end()) {
+			if (std::find(depend->second.begin(),depend->second.end(),dependTo) != depend->second.end()) {
+				printf("Dependence from %s to %s already existed\n", dependFrom.c_str(), dependTo.c_str());
+			}
+			else {
+				depend->second.push_front(dependTo);
+			}
+		}
+		else {
+			std::list<std::string> temp_depend;
+			temp_depend.push_front(dependTo);
+			depends[dependFrom] = temp_depend;
+		}
 		//test if node already exists & create node
 		std::list<Node*>::iterator searchFrom = SearchFromNodes(nodes, dependFrom);
 		if (nodes.empty() || searchFrom == nodes.end()) {
@@ -98,7 +140,7 @@ int main(){
 			nodes.push_front(temp);
 			searchTo = nodes.begin();
 		}
-		//TODO update dependence
+		//update dependence
 		(*searchFrom)->AddDependence(*searchTo);
     }
 	printf("--------Reading Finished---------\n");
@@ -125,6 +167,7 @@ int main(){
 				delete (*target);
 				nodes.remove(*target);
 				DeleteFromNodes(nodes, targetName);
+				//TODO update whether usable
 				continue;
 			}
 		}
