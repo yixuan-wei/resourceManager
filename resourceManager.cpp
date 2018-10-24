@@ -127,6 +127,7 @@ int main(){
 			depends[dependFrom] = temp_depend;
 		}
 		//test if node already exists & create node
+		//TODO 统一成检测并添加的函数模块
 		std::list<Node*>::iterator searchFrom = SearchFromNodes(nodes, dependFrom);
 		if (nodes.empty() || searchFrom == nodes.end()) {
 			Node* temp = new Node(dependFrom.c_str());
