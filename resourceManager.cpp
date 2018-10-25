@@ -169,43 +169,81 @@ int InitFromLog(std::list<Node*> &nodes, std::map<std::string, std::list<std::st
 		printf("Opening log file failed\n");
 		return 1;
 	}
-	//TODO 改成log格式
+	//TODO?? 不一定需要，LOG改成先记录dependences再记录graph
 	//read in and process the resource file
 	while (!resourceFile.eof()) {
-		//read in a line from txt
+		//read in a line from log
 		std::string dependence;
 		getline(resourceFile, dependence);
 		if (dependence == "") break;
-		// cut this line into separate contents
-		std::string dependFrom, dependTo;
-		std::list<std::string> temp_str;
-		SplitString(dependence, temp_str);
-		dependFrom = temp_str.front();
-		dependTo = temp_str.back();
-		temp_str.clear();
-		printf("%s depends on %s\n", dependFrom.c_str(), dependTo.c_str());
-		//insert dependence into depends
-		auto depend = depends.find(dependFrom);
-		if (depend != depends.end()) {
-			if (std::find(depend->second.begin(), depend->second.end(), dependTo) != depend->second.end()) {
-				printf("Dependence from %s to %s already existed\n", dependFrom.c_str(), dependTo.c_str());
+		if(dependence=="Graph:"){
+			//TODO start nodes read in
+			while(!resourceFile.eof()||dependence=="Dependences:"){
+				std::list<std::string> temp_str;
+				SplitString(dependence, temp_str);
+				if(temp_str.size()<2){
+					printf("ERROR: LOG format is wrong, please check\n");
+					return 1;
+				}
+				auto iter = temp_str.begin();
+				std::string name = *iter;
+				auto node = FindCreatNode(nodes,name);
+				iter++;
+				std::string usable = *iter;//TODO string转int
+				if(usable=="1")  	(*node)->SetUsable();
+				else 				(*node)->SetNotUsable();
+				iter++;
+				while(iter!=temp_str.end()){
+					//TODO 遍历iter更新dependences
+					auto to = FindCreatNode(nodes,*iter);
+					(*node)->AddDependence(*to);
+				}
+				temp_str.end();
+				getline(resourceFile,dependence);
 			}
-			else {
-				depend->second.push_front(dependTo);
+			//TODO start depends read in
+			//根据读入，新建node，
+			while(!resourceFile.eof()){
+				std::list<std::string> temp_str;
+				SplitString(dependence, temp_str);
+				if(temp_str.size()<2){
+					printf("ERROR: LOG format is wrong, please check\n");
+					return 1;
+				}
+				//TODO update depends
+				auto iter = temp_str.begin();
+				std::string name = *iter;
+				auto depend = depends.find(*iter);
+				iter++;
+				while(iter!=temp_str.end()){
+					if (depend != depends.end()) {
+						if (std::find(depend->second.begin(), depend->second.end(), *iter) != depend->second.end()) {
+							printf("Dependence from %s to %s already existed\n", name.c_str(), *iter.c_str());
+						}
+						else {
+							depend->second.push_front(*iter);
+						}
+					}
+					else {
+						std::list<std::string> temp_depend;
+						temp_depend.push_front(*iter);
+						depends[name] = temp_depend;
+					}
+					iter++;
+				}
+				getline(resourceFile,dependence);
 			}
 		}
-		else {
-			std::list<std::string> temp_depend;
-			temp_depend.push_front(dependTo);
-			depends[dependFrom] = temp_depend;
-		}
-		CreatDependence(nodes, dependFrom, dependTo);
+	}
+	if(resourceFile.eof()) {
+		printf("ERROR: error when loading in LOG file\n");
+		return 1;
 	}
 	printf("--------Reading Finished---------\n");
 	return 0;
 }
 
-auto CreatNode(std::list<Node*>&nodes,std::string name) {
+auto FindCreatNode(std::list<Node*>&nodes,std::string name) {
 	std::list<Node*>::iterator node = SearchFromNodes(nodes, name);
 	if (nodes.empty() || node == nodes.end()) {
 		Node* temp = new Node(name.c_str());
@@ -217,8 +255,8 @@ auto CreatNode(std::list<Node*>&nodes,std::string name) {
 
 void CreatDependence(std::list<Node*>&nodes, std::string from, std::string to) {
 	//test if node already exists & create node
-	auto iterFrom = CreatNode(nodes, from);
-	auto iterTo = CreatNode(nodes, to);
+	auto iterFrom = FindCreatNode(nodes, from);
+	auto iterTo = FindFindCreatNode(nodes, to);
 	//update dependence
 	(*iterFrom)->AddDependence(*iterTo);
 }
@@ -302,7 +340,7 @@ int main(){
 			std::string sub_instr = temp_instr.front();
 			if (!strcmp(sub_instr.c_str(),"node") && temp_instr.size()==2) {
 				printf("Going to insert a node\n");
-				CreatNode(nodes, temp_instr.back());
+				FindFindCreatNode(nodes, temp_instr.back());
 			}
 			else if (!strcmp(sub_instr.c_str(), "dependence") && temp_instr.size()==3) {
 				temp_instr.pop_front();
@@ -331,8 +369,8 @@ int main(){
 			}
 			else {
 				printf("ERROR: load format wrong, please check!\n");
-				continue;
 			}
+			continue;
 		}
 		else{
 			// 检查并尝试进行节点删除，否则打印帮助
