@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <stack>
 
 auto SearchFromNodes(std::list<Node*> &nodes,std::string& target) {
 	std::list<Node*>::iterator each;
@@ -24,37 +25,60 @@ void DeleteFromNodes(std::list<Node*> &nodes, std::string& target) {
 	printf("Deleting %s finished\n", target.c_str());
 }
 
-void UpdateUsableNodes(std::list<Node*> &nodes, std::map<std::string, std::list<std::string>> &depends) {
-	for (auto each = nodes.begin(); each != nodes.end(); each++) {
-		std::string curName = (*each)->GetName();
-		auto curDepend = depends.find(curName);
-		bool found = false;
-		for (auto d = curDepend->second.begin(); d != curDepend->second.end(); d++) {
-			found = false;
-			for (auto t = (*each)->GetDependencesBegin(); t != (*each)->GetDependencesEnd(); t++) {
-				if (!strcmp((*d).c_str(), (*t)->GetName().c_str())) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				(*each)->SetNotUsable();
+bool CheckUsableInDependence(Node* &target, std::map<std::string, std::list<std::string>> &depends, std::list<std::string> &updated) {
+	auto targetDepend = depends.find(target->GetName());
+	if (std::find(updated.begin(), updated.end(), target->GetName()) != updated.end()) {
+		return target->GetUsable();
+	}
+	if (targetDepend == depends.end()) {
+		updated.push_front(target->GetName());
+		return true;
+	}
+	bool found = false;
+	for (auto each = targetDepend->second.begin(); each != targetDepend->second.end(); each++) {
+		found = false;
+		auto every = target->GetDependencesBegin();
+		for (; every != target->GetDependencesEnd(); every++) {
+			if (!strcmp((*every)->GetName().c_str(), (*each).c_str())) {
+				found = CheckUsableInDependence(*every, depends, updated);
 				break;
 			}
 		}
-		if (found) (*each)->SetUsable();
+		if (!found) {
+			target->SetNotUsable();
+			updated.push_front(target->GetName());
+			return false;
+		}
+	}
+	if (found) {
+		target->SetUsable();
+		updated.push_front(target->GetName());
+		return true;
+	}
+}
+
+void UpdateUsableNodes(std::list<Node*> &nodes, std::map<std::string, std::list<std::string>> &depends) {
+	//TODO 将迭代改为循环
+	//Using iteration to walk through the graph through one node recursively, and check from the bottom of graph
+	std::list<std::string> updated;
+	for (auto each = nodes.begin(); each != nodes.end(); each++) {
+		std::string curName = (*each)->GetName();
+		if (std::find(updated.begin(), updated.end(), curName) != updated.end()) 
+			continue;
+		CheckUsableInDependence(*each, depends, updated);
 	}
 }
 
 void PrintGraph(std::list<Node*> &nodes) {
+	printf("--------------------\n");
 	printf("Current Graph View:\n");
 	for(std::list<Node*>::iterator var = nodes.begin();var!=nodes.end();var++)
 	{
-		printf("    %s is ");
+		printf("    %s is ", (*var)->GetName().c_str());
 		// print whether usable or not
-		if ((*var)->GetUsable) printf("usable");
+		if ((*var)->GetUsable()) printf("usable");
 		else printf("not usable");
-		printf(",depends on ", (*var)->GetName().c_str());
+		printf(",depends on ");
 		int num = 0;
 		for (std::list<Node*>::iterator depend = (*var)->GetDependencesBegin(); depend != (*var)->GetDependencesEnd(); depend++) {
 			printf("%s, ", (*depend)->GetName().c_str());
@@ -165,10 +189,11 @@ int main(){
 			}
 			else {
 				std::string targetName = (*target)->GetName();
+				DeleteFromNodes(nodes, targetName);
 				delete (*target);
 				nodes.remove(*target);
-				DeleteFromNodes(nodes, targetName);
-				//TODO update whether usable
+				//update whether all the nodes are usable
+				UpdateUsableNodes(nodes, depends);
 				continue;
 			}
 		}
