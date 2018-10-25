@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <stack>
+#include <fstream>
 
 auto SearchFromNodes(std::list<Node*> &nodes,std::string& target) {
 	std::list<Node*>::iterator each;
@@ -191,7 +191,7 @@ int main(){
 				std::string targetName = (*target)->GetName();
 				DeleteFromNodes(nodes, targetName);
 				delete (*target);
-				nodes.remove(*target);
+				target=nodes.erase(target);
 				//update whether all the nodes are usable
 				UpdateUsableNodes(nodes, depends);
 				continue;
@@ -214,8 +214,32 @@ int main(){
 		}
 		else if (!strcmp(instruction.c_str(), "q")) {
 			printf("Ready to quit the manager\n");
-			//TODO 删除所有内存（nodes,和里面每一项的所有依赖）
-			//TODO 保存所有node和依赖关系
+			// 保存所有node和依赖关系，邻接表
+			std::ofstream outfile("ResourceManagerLog", std::ios::out);
+			outfile << "Graph:" << std::endl;
+			for (auto each = nodes.begin(); each != nodes.end(); each++) {
+				outfile << (*each)->GetName() << " " << (*each)->GetUsable();
+				for (auto depend = (*each)->GetDependencesBegin(); depend != (*each)->GetDependencesEnd(); depend++) {
+					outfile << " " << (*depend)->GetName();
+				}
+				outfile << std::endl;
+			}
+			outfile << "Dependences:" << std::endl;
+			for (auto each = depends.begin(); each != depends.end(); each++) {
+				outfile << each->first << " ";
+				for (auto depend = each->second.begin(); depend != each->second.end(); depend++) {
+					outfile << " "<<*depend;
+				}
+				outfile << std::endl;
+			}
+			outfile.close();
+			//删除所有内存（nodes,和里面每一项的所有依赖）
+			for (auto node = nodes.begin(); node != nodes.end();) {
+				delete(*node);
+				node = nodes.erase(node);
+			}
+			nodes.clear();
+			return 0;
 		}
 		else{
 			//TODO 检查并尝试进行节点删除，否则打印帮助
