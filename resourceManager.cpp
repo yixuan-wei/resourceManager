@@ -39,8 +39,9 @@ int VisualizaGraph(list<Node*> *nodes, map<string,list<string>>*depends){
 	}
 	dotFile<<"}";
 	dotFile.close();
-	string exe = ".\\graphviz\\dot.exe -Tpng -o test.png graphviz\\test.dot";
+	string exe = ".\\graphviz\\dot.exe -Tpng -o graph.png graphviz\\test.dot";
 	system(exe.data());
+	system(".\\graph.png");
 	return 0;
 }
 
