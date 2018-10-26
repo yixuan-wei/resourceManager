@@ -1,0 +1,12 @@
+Graph:
+bullet 1
+turret 1 bullet
+bombs 1 ore
+ore 1
+bullets 1 ore
+handgun 1 bullets
+Dependences:
+bombs ore
+bullets ore
+handgun bullets
+turret bullet
