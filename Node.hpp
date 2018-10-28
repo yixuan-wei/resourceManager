@@ -1,3 +1,7 @@
+/* Node class for Resource Manager
+author: Yixuan Wei
+date: 2018.10.28
+*/
 #include <list>
 #include <string>
 #include <string.h>
@@ -8,27 +12,28 @@ class Node{
     private:
         string name;
         list<Node*> dependences;
-		bool usable;
+	bool usable;
     public:
         Node(const char* string);
         //~Node();
         string GetName(){return this->name;}
         list<Node*>::iterator GetDependencesBegin(){ return this->dependences.begin();}
-		list<Node*>::iterator GetDependencesEnd() { return this->dependences.end(); }
-		bool GetUsable() { return this->usable; }
-		void SetNotUsable() { this->usable = false; }
-		void SetUsable() { this->usable = true; }
+	list<Node*>::iterator GetDependencesEnd() { return this->dependences.end(); }
+	bool GetUsable() { return this->usable; }
+	void SetNotUsable() { this->usable = false; }
+	void SetUsable() { this->usable = true; }
         void SetName(const char* newName){this->name.assign(newName);}
-		void AddDependence(Node* target);
+	void AddDependence(Node* target);
         list<Node*>::iterator SearchDependences(const char* dependence);
         void DeleteDependence(const char* target);
 };
 
 Node::Node(const char* string){
-    this->SetName(string);
+        this->SetName(string);
 	this->usable = true;
 }
 
+//insert a dependence from this node to input node
 void Node::AddDependence(Node* target) {
 	//Test if already exists a dependence before insert this one
 	list<Node*>::iterator test = this->SearchDependences((*target).name.c_str());
@@ -40,6 +45,7 @@ void Node::AddDependence(Node* target) {
 	}
 }
 
+//search through the dependences for a node according to input name
 list<Node*>::iterator Node::SearchDependences(const char* dependence){
     list<Node*>::iterator dependIter;
     for(dependIter = this->dependences.begin(); dependIter!=this->dependences.end();dependIter++){
@@ -50,6 +56,7 @@ list<Node*>::iterator Node::SearchDependences(const char* dependence){
     return dependIter;
 }
 
+//delete a node in dependences according to input name
 void Node::DeleteDependence(const char* target){
 	list<Node*>::iterator test = this->SearchDependences(target);
 	if (test != this->dependences.end()) {
