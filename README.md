@@ -1,7 +1,7 @@
 # resourceManager
 This is a resource manager tool for programming portfolio of SMU Guildhall 2018, 
 specific realization requirements could refer to "requirement.png". <br>
-**Requirements**: C++17, built by g++ (GCC version 6.3.0), using the graphviz open-source tool for visualization of directed tool
+**Requirements**: C++17, built by g++ (GCC version 6.3.0), using the graphviz open-source tool for visualization of directed tool, only suitable for windows
 
 ### File Explanation:
 - **resourceManager.cpp**: Responsible for main activity of resource manager, including commands and exact realization for each 
