@@ -1,4 +1,7 @@
-
+/* Resource Manager
+author: Yixuan Wei
+date: 2018.10.28
+*/
 #include <list>
 #include <string.h>
 #include <string>
@@ -14,6 +17,8 @@
 
 using namespace std;
 
+//visualize the graph using graphviz tool
+// return 0 for success, 1 for failure
 int VisualizaGraph(list<Node*> *nodes, map<string,list<string>>*depends){
 	ofstream dotFile("graphviz\\test.dot",ios::out);
 	if (!dotFile.is_open()) {
@@ -45,6 +50,8 @@ int VisualizaGraph(list<Node*> *nodes, map<string,list<string>>*depends){
 	return 0;
 }
 
+// search from nodes list according to name of node
+// return iterator of found node, if not found, would return iterator of nodes.end()
 list<Node*>::iterator SearchFromNodes(list<Node*> *nodes, string& target) {
 	list<Node*>::iterator each;
 	for (each = (*nodes).begin(); each != (*nodes).end(); each++) {
@@ -55,6 +62,7 @@ list<Node*>::iterator SearchFromNodes(list<Node*> *nodes, string& target) {
 	return each;
 }
 
+//delete from nodes list according to name of node
 void DeleteFromNodes(list<Node*> *nodes, string& target) {
 	for (auto each = (*nodes).begin(); each != (*nodes).end(); each++) {
 		(*each)->DeleteDependence(target.c_str());
@@ -62,6 +70,8 @@ void DeleteFromNodes(list<Node*> *nodes, string& target) {
 	printf("Deleting %s finished\n", target.c_str());
 }
 
+// recursively check if one node is usable in the graph, in deep search order
+// return true for usable, false for not usable
 bool CheckUsableInDependence(Node* &target, map<string, list<string>> *depends, list<string> *updated) {
 	auto targetDepend = (*depends).find(target->GetName());
 	if (find((*updated).begin(), (*updated).end(), target->GetName()) != (*updated).end()) {
@@ -71,6 +81,7 @@ bool CheckUsableInDependence(Node* &target, map<string, list<string>> *depends, 
 		(*updated).push_front(target->GetName());
 		return true;
 	}
+	// search through depends (all dependencies) to see if all dependences exist in current graph
 	bool found = false;
 	for (auto each = targetDepend->second.begin(); each != targetDepend->second.end(); each++) {
 		found = false;
@@ -94,8 +105,9 @@ bool CheckUsableInDependence(Node* &target, map<string, list<string>> *depends, 
 	}
 }
 
+//update all nodes' usable status in the nodes list
 void UpdateUsableNodes(list<Node*> *nodes, map<string, list<string>> *depends) {
-	//TODO ��������Ϊѭ��
+	//TODO better change from iteration to loop, but would not interfere with performance in normal cases
 	//Using iteration to walk through the graph through one node recursively, and check from the bottom of graph
 	list<string> updated;
 	for (auto each = (*nodes).begin(); each != (*nodes).end(); each++) {
@@ -106,6 +118,7 @@ void UpdateUsableNodes(list<Node*> *nodes, map<string, list<string>> *depends) {
 	}
 }
 
+//print current graph: links and usable status
 void PrintGraph(list<Node*> *nodes) {
 	printf("--------------------\n");
 	printf("Current Graph View:\n");
@@ -127,6 +140,7 @@ void PrintGraph(list<Node*> *nodes) {
 	printf("--------------------\n");
 }
 
+//print dependences relationships of all nodes, not including ones without any dependence
 void PrintDependences(map<string, list<string>> * depends) {
 	printf("--------------------\n");
 	printf("The Dependences are:\n");
@@ -139,6 +153,7 @@ void PrintDependences(map<string, list<string>> * depends) {
 	printf("--------------------\n");
 }
 
+//print the help for all instructions
 void PrintInstrHelp() {
 	printf(">>>>Instructions include:\n");
 	printf("    delete n               :delete a node named n from the graph\n");
@@ -151,6 +166,7 @@ void PrintInstrHelp() {
 	printf("--------------------------\n");
 }
 
+//split string into a list by " "
 void SplitString(string& s, list<string> *result) {
 	string::size_type pos = s.find(" ");
 	while (pos != string::npos) {
@@ -161,8 +177,8 @@ void SplitString(string& s, list<string> *result) {
 	(*result).push_back(s);
 }
 
+//search through s to replace '/' with '\'
 void ReplaceString(string& s) {
-	//TODO 完成从头到尾检查替换\\&/
 	const char from = '/';
 	const char to = '\\';
 	for (int i = 0; i < s.size(); i++) {
@@ -172,6 +188,8 @@ void ReplaceString(string& s) {
 	}
 }
 
+// find node according to name in the nodes list, if not exists, creat a new node
+// return an iterator pointing to this node
 list<Node*>::iterator FindCreatNode(list<Node*>*nodes, string name) {
 	list<Node*>::iterator node = SearchFromNodes(nodes, name);
 	if ((*nodes).empty() || node == (*nodes).end()) {
@@ -182,6 +200,7 @@ list<Node*>::iterator FindCreatNode(list<Node*>*nodes, string name) {
 	return node;
 }
 
+//creat dependence from two input names
 void CreatDependence(list<Node*>* nodes, string from, string to) {
 	//test if node already exists & create node
 	list<Node*>::iterator iterFrom = SearchFromNodes(nodes, from);
@@ -196,6 +215,8 @@ void CreatDependence(list<Node*>* nodes, string from, string to) {
 	}
 }
 
+// initialize the manager from resource.txt, executed when lauched the manager
+// return 0 for normal status, 1 for failed status
 int InitFromResource(list<Node*> *nodes, map<string,list<string>> *depends) {
 	printf("Read in the resource.txt\n");
 	ifstream resourceFile(".\\resource.txt", ios::in);
@@ -240,6 +261,8 @@ int InitFromResource(list<Node*> *nodes, map<string,list<string>> *depends) {
 	return 0;
 }
 
+// initialize the manager from log file that saved when quit last time
+// return 0 for sucess, 1 for failure
 int InitFromLog(list<Node*> *nodes, map<string, list<string>> *depends, string &route) {
 	printf("Read in the log file\n");
 	ReplaceString(route);
@@ -311,6 +334,7 @@ int InitFromLog(list<Node*> *nodes, map<string, list<string>> *depends, string &
 	return 0;
 }
 
+// delete a node according to the name
 void DeleteNode(list<Node*>*nodes, map<string, list<string>> *depends, string &name) {
 	printf("Going to delete a node\n");
 	list<Node*>::iterator target = SearchFromNodes(nodes, name);
@@ -327,8 +351,9 @@ void DeleteNode(list<Node*>*nodes, map<string, list<string>> *depends, string &n
 	}
 }
 
+// clear the manager, including the graph (nodes and links) and dependences
 void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
-	// 保存所有node和依赖关系，邻接表
+	// outfile to save all the dependences and the graph, in the adjacent list form
 	ofstream outfile("ResourceManagerLog", ios::out);
 	outfile << "Graph:" << endl;
 	for (list<Node*>::iterator each = (*nodes).begin(); each != (*nodes).end(); each++) {
@@ -347,7 +372,7 @@ void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
 		outfile << endl;
 	}
 	outfile.close();
-	//删除所有内存（nodes,和里面每一项的所有依赖）
+	//delete all nodes and the space newed for them
 	for (list<Node*>::iterator node = (*nodes).begin(); node != (*nodes).end();) {
 		delete(*node);
 		node = (*nodes).erase(node);
@@ -356,6 +381,7 @@ void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
 	(*depends).clear();
 }
 
+// main activity
 int main(){
 	list<Node*> nodes; //store all existing nodes
 	map<string, list<string>> depends; //store all the dependences from original txt
@@ -365,7 +391,7 @@ int main(){
 		return 1;
 	}
 	PrintInstrHelp();
-	//TODO examine the input and execute corresponding function all the time
+	//examine the input and execute corresponding function all the time
 	while (true) {
 		PrintGraph(&nodes);
 		printf("Input your next operation\n");
@@ -404,11 +430,13 @@ int main(){
 			}
 			continue;
 		}
+		//quit the manager and save the graph and dependence
 		else if (!strcmp(instruction.c_str(), "q")) {
 			printf("Ready to quit the manager\n");
 			ClearManager(&nodes, &depends);
 			return 0;
 		}
+		//load the manager status from log file
 		else if (!strcmp(instruction.c_str(), "load")) {
 			if (temp_instr.size() == 2) {
 				printf("Ready to load in log file\n");
@@ -422,16 +450,18 @@ int main(){
 			}
 			continue;
 		}
+		//print the dependences
 		else if (!strcmp(instruction.c_str(), "print")) {
 			PrintDependences(&depends);
 			continue;
 		}
+		//visualize the graph
 		else if(!strcmp(instruction.c_str(),"visualize")){
 			VisualizaGraph(&nodes,&depends);
 			continue;
 		}
 		else{
-			// 检查并尝试进行节点删除，否则打印帮助
+			// try to delete the node if input a node's name, print instructions' help
 			if (temp_instr.size() == 1) {
 				printf("Going to delete this node? y/n\n");
 				char in = 'n';
