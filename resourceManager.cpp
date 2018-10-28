@@ -12,15 +12,24 @@ date: 2018.10.28
 #include <fstream>
 #include <stdio.h>
 #include <algorithm>
+#include <cstdlib>
+#ifdef _WINDOWS_
 #include <shlobj.h>
 #include <shellapi.h>
+#endif
 
 using namespace std;
 
 //visualize the graph using graphviz tool
 // return 0 for success, 1 for failure
-int VisualizaGraph(list<Node*> *nodes, map<string,list<string>>*depends){
-	ofstream dotFile("graphviz\\test.dot",ios::out);
+int VisualizaGraph(list<Node*> *nodes, map<string,list<string> >*depends){
+	ofstream dotFile;
+	#ifdef _APPLE_
+	dotFile.open("graphviz/test.dot",ios::out);
+	#endif
+	#ifdef _WINDOWS_
+	dotFile.open("graphviz\\test.dot",ios::out);
+	#endif
 	if (!dotFile.is_open()) {
 		printf("Opening dot file failed\n");
 		return 1;
@@ -44,9 +53,17 @@ int VisualizaGraph(list<Node*> *nodes, map<string,list<string>>*depends){
 	}
 	dotFile<<"}";
 	dotFile.close();
-	string exe = ".\\graphviz\\dot.exe -Tpng -o graph.png graphviz\\test.dot";
+	string exe;
+	#ifdef _WINDOWS_
+	exe = "graphviz\\win\\dot.exe -Tpng -o graph.png graphviz\\test.dot";
 	system(exe.data());
-	system(".\\graph.png");
+	system("graph.png");
+	#endif
+	#ifdef _APPLE_
+	exe = "graphviz/mac/dot -Tpng -o graph.png graphviz\\test.dot"
+	system(exe.data());
+	system("open graph.png");
+	#endif
 	return 0;
 }
 
@@ -72,7 +89,7 @@ void DeleteFromNodes(list<Node*> *nodes, string& target) {
 
 // recursively check if one node is usable in the graph, in deep search order
 // return true for usable, false for not usable
-bool CheckUsableInDependence(Node* &target, map<string, list<string>> *depends, list<string> *updated) {
+bool CheckUsableInDependence(Node* &target, map<string, list<string> > *depends, list<string> *updated) {
 	auto targetDepend = (*depends).find(target->GetName());
 	if (find((*updated).begin(), (*updated).end(), target->GetName()) != (*updated).end()) {
 		return target->GetUsable();
@@ -103,10 +120,11 @@ bool CheckUsableInDependence(Node* &target, map<string, list<string>> *depends, 
 		(*updated).push_front(target->GetName());
 		return true;
 	}
+	return false;
 }
 
 //update all nodes' usable status in the nodes list
-void UpdateUsableNodes(list<Node*> *nodes, map<string, list<string>> *depends) {
+void UpdateUsableNodes(list<Node*> *nodes, map<string, list<string> > *depends) {
 	//TODO better change from iteration to loop, but would not interfere with performance in normal cases
 	//Using iteration to walk through the graph through one node recursively, and check from the bottom of graph
 	list<string> updated;
@@ -141,10 +159,10 @@ void PrintGraph(list<Node*> *nodes) {
 }
 
 //print dependences relationships of all nodes, not including ones without any dependence
-void PrintDependences(map<string, list<string>> * depends) {
+void PrintDependences(map<string, list<string> > * depends) {
 	printf("--------------------\n");
 	printf("The Dependences are:\n");
-	for (map<string, list<string>>::iterator each = (*depends).begin(); each != (*depends).end(); each++) {
+	for (map<string, list<string> >::iterator each = (*depends).begin(); each != (*depends).end(); each++) {
 		printf("%s depends on ",each->first.c_str());
 		for (list<string>::iterator every = each->second.begin(); every != each->second.end(); every++)
 			printf("%s, ", (*every).c_str());
@@ -217,9 +235,9 @@ void CreatDependence(list<Node*>* nodes, string from, string to) {
 
 // initialize the manager from resource.txt, executed when lauched the manager
 // return 0 for normal status, 1 for failed status
-int InitFromResource(list<Node*> *nodes, map<string,list<string>> *depends) {
+int InitFromResource(list<Node*> *nodes, map<string,list<string> > *depends) {
 	printf("Read in the resource.txt\n");
-	ifstream resourceFile(".\\resource.txt", ios::in);
+	ifstream resourceFile("resource.txt", ios::in);
 	if (!resourceFile.is_open()) {
 		printf("Opening resource file failed\n");
 		return 1;
@@ -239,7 +257,7 @@ int InitFromResource(list<Node*> *nodes, map<string,list<string>> *depends) {
 		temp_str.clear();
 		printf("%s depends on %s\n", dependFrom.c_str(), dependTo.c_str());
 		//insert dependence into depends
-		map<string, list<string>>::iterator depend = (*depends).find(dependFrom);
+		map<string, list<string> >::iterator depend = (*depends).find(dependFrom);
 		if (depend != (*depends).end()) {
 			if (find(depend->second.begin(), depend->second.end(), dependTo) != depend->second.end()) {
 				printf("Dependence from %s to %s already existed\n", dependFrom.c_str(), dependTo.c_str());
@@ -263,9 +281,11 @@ int InitFromResource(list<Node*> *nodes, map<string,list<string>> *depends) {
 
 // initialize the manager from log file that saved when quit last time
 // return 0 for sucess, 1 for failure
-int InitFromLog(list<Node*> *nodes, map<string, list<string>> *depends, string &route) {
+int InitFromLog(list<Node*> *nodes, map<string, list<string> > *depends, string &route) {
 	printf("Read in the log file\n");
+	#ifdef _WINDOWS_
 	ReplaceString(route);
+	#endif
 	ifstream resourceFile(route, ios::in);
 	if (!resourceFile.is_open()) {
 		printf("Opening log file failed\n");
@@ -335,7 +355,7 @@ int InitFromLog(list<Node*> *nodes, map<string, list<string>> *depends, string &
 }
 
 // delete a node according to the name
-void DeleteNode(list<Node*>*nodes, map<string, list<string>> *depends, string &name) {
+void DeleteNode(list<Node*>*nodes, map<string, list<string> > *depends, string &name) {
 	printf("Going to delete a node\n");
 	list<Node*>::iterator target = SearchFromNodes(nodes, name);
 	if (target == (*nodes).end()) {
@@ -352,7 +372,7 @@ void DeleteNode(list<Node*>*nodes, map<string, list<string>> *depends, string &n
 }
 
 // clear the manager, including the graph (nodes and links) and dependences
-void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
+void ClearManager(list<Node*> *nodes, map<string, list<string> >* depends) {
 	// outfile to save all the dependences and the graph, in the adjacent list form
 	ofstream outfile("ResourceManagerLog", ios::out);
 	outfile << "Graph:" << endl;
@@ -364,7 +384,7 @@ void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
 		outfile << endl;
 	}
 	outfile << "Dependences:" << endl;
-	for (map<string, list<string>>::iterator each = (*depends).begin(); each != (*depends).end(); each++) {
+	for (map<string, list<string> >::iterator each = (*depends).begin(); each != (*depends).end(); each++) {
 		outfile << each->first;
 		for (list<string>::iterator depend = each->second.begin(); depend != each->second.end(); depend++) {
 			outfile << " " << *depend;
@@ -384,7 +404,7 @@ void ClearManager(list<Node*> *nodes, map<string, list<string>>* depends) {
 // main activity
 int main(){
 	list<Node*> nodes; //store all existing nodes
-	map<string, list<string>> depends; //store all the dependences from original txt
+	map<string, list<string> > depends; //store all the dependences from original txt
 	//read in the resource.txt and initialize nodes & depends
 	if (InitFromResource(&nodes, &depends)) {
 		printf("Resource Manager going to abort\n");

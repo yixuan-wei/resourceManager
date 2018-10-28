@@ -1,7 +1,7 @@
 # resourceManager
 This is a resource manager tool for programming portfolio of SMU Guildhall 2018, 
 specific realization requirements could refer to "requirement.png". <br>
-**Requirements**: C++17, built by g++ (GCC version 6.3.0), using the graphviz open-source tool for visualization of directed tool, only suitable for windows
+**Requirements**: C++17, built by g++ (GCC version 6.3.0), using the graphviz open-source tool for visualization of directed tool, only tested and supported for windows and mac OSX
 
 ### File Explanation:
 - **resourceManager.cpp**: Responsible for main activity of resource manager, including commands and exact realization for each 
@@ -11,8 +11,9 @@ command
 - **ResourceManagerLog**: log file to store the manager status the last time it quits, read according to command
 - **resource.txt**: stores the dependence relationship, read when launching the manager, 
 would initialize the dependence relationship from start, unable to change relationship unless quit and refresh resource.txt
-- **resourceManager.exe**: the successful version built from g++
-- **test.png**: the graph visualization image
+- **resourceManager.exe**: the successful version built from g++ for windows
+- **resourceManager.out**: the successful version built from g++ for mac OSX
+- **graph.png**: the graph visualization image
 - **requirement.png**: exact requirements from the SMU Guildhall on resource manager
 
 ### Commands supported:
