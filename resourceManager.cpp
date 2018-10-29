@@ -13,59 +13,12 @@ date: 2018.10.28
 #include <stdio.h>
 #include <algorithm>
 #include <cstdlib>
-#ifdef _WINDOWS_
+#ifdef _WIN32
 #include <shlobj.h>
 #include <shellapi.h>
 #endif
 
 using namespace std;
-
-//visualize the graph using graphviz tool
-// return 0 for success, 1 for failure
-int VisualizaGraph(list<Node*> *nodes, map<string,list<string> >*depends){
-	ofstream dotFile;
-	#ifdef _APPLE_
-	dotFile.open("graphviz/test.dot",ios::out);
-	#endif
-	#ifdef _WINDOWS_
-	dotFile.open("graphviz\\test.dot",ios::out);
-	#endif
-	if (!dotFile.is_open()) {
-		printf("Opening dot file failed\n");
-		return 1;
-	}
-	dotFile<<"digraph edge_settings{\n";
-	for(auto each =(*nodes).begin(); each!=(*nodes).end();each++){
-		list<string> temp_list;
-		if((*each)->GetUsable())  dotFile<<"    "<<(*each)->GetName()<<"[color=\"green\"]\n";
-		else  dotFile<<"    "<<(*each)->GetName()<<"[color=\"red\"]\n";
-		for(auto every=(*each)->GetDependencesBegin();every != (*each)->GetDependencesEnd();every++){
-			dotFile<<"    "<<(*each)->GetName()<<"->"<<(*every)->GetName()<<"[style=\"\" color=\"green\"]\n";
-			temp_list.push_back((*every)->GetName());
-		}
-		auto depend = (*depends).find((*each)->GetName());
-		if(depend==(*depends).end()) continue;
-		for(auto every = depend->second.begin();every!=depend->second.end();every++){
-			if(find(temp_list.begin(),temp_list.end(),(*every))==temp_list.end()){
-				dotFile<<"    "<<(*each)->GetName()<<"->"<<(*every)<<"[style=\"dotted\" color=\"red\"]\n";
-			}
-		}
-	}
-	dotFile<<"}";
-	dotFile.close();
-	string exe;
-	#ifdef _WINDOWS_
-	exe = "graphviz\\win\\dot.exe -Tpng -o graph.png graphviz\\test.dot";
-	system(exe.data());
-	system("graph.png");
-	#endif
-	#ifdef _APPLE_
-	exe = "graphviz/mac/dot -Tpng -o graph.png graphviz\\test.dot"
-	system(exe.data());
-	system("open graph.png");
-	#endif
-	return 0;
-}
 
 // search from nodes list according to name of node
 // return iterator of found node, if not found, would return iterator of nodes.end()
@@ -231,6 +184,63 @@ void CreatDependence(list<Node*>* nodes, string from, string to) {
 		printf("ERROR: node %s does not exist\n", from.c_str());
 		printf("ERROR: node %s does not exist\n", to.c_str());
 	}
+}
+
+
+//visualize the graph using graphviz tool
+// return 0 for success, 1 for failure
+int VisualizaGraph(list<Node*> *nodes, map<string,list<string> >*depends){
+	ofstream dotFile;
+	#ifdef _APPLE_
+	dotFile.open("graphviz/test.dot",ios::out);
+	#endif
+	#ifdef _WIN32
+	printf("going to load Log file\n");
+	dotFile.open("graphviz\\test.dot",ios::out);
+	#endif
+	if (!dotFile.is_open()) {
+		printf("Opening dot file failed\n");
+		return 1;
+	}
+	dotFile<<"digraph edge_settings{\n";
+	for(auto each =(*nodes).begin(); each!=(*nodes).end();each++){
+		list<string> temp_list;
+		if((*each)->GetUsable())  dotFile<<"    "<<(*each)->GetName()<<"[color=\"green\"]\n";
+		else  dotFile<<"    "<<(*each)->GetName()<<"[color=\"red\"]\n";
+		for(auto every=(*each)->GetDependencesBegin();every != (*each)->GetDependencesEnd();every++){
+			dotFile<<"    "<<(*each)->GetName()<<"->"<<(*every)->GetName()<<"[style=\"\" color=\"green\"]\n";
+			temp_list.push_back((*every)->GetName());
+		}
+		auto depend = (*depends).find((*each)->GetName());
+		if(depend==(*depends).end()) continue;
+		for(auto every = depend->second.begin();every!=depend->second.end();every++){
+			if(find(temp_list.begin(),temp_list.end(),(*every))==temp_list.end()){
+				dotFile<<"    "<<(*each)->GetName()<<"->"<<(*every)<<"[style=\"dotted\" color=\"red\"]\n";
+			}
+		}
+	}
+	for(auto each = (*depends).begin(); each!=(*depends).end();each++){
+		auto name = each->first;
+		if(SearchFromNodes(nodes,name) ==(*nodes).end()){
+			for(auto every = each->second.begin();every!=each->second.end();every++){
+				dotFile<<"    "<<each->first<<"->"<<(*every)<<"[style=\"dotted\" color=\"red\"]\n";
+			}
+		}
+	}
+	dotFile<<"}";
+	dotFile.close();
+	string exe;
+	#ifdef _WIN32
+	exe = "graphviz\\win\\dot.exe -Tpng -o graph.png graphviz\\test.dot";
+	system(exe.data());
+	system("graph.png");
+	#endif
+	#ifdef _APPLE_
+	exe = "graphviz/mac/dot -Tpng -o graph.png graphviz\\test.dot"
+	system(exe.data());
+	system("open graph.png");
+	#endif
+	return 0;
 }
 
 // initialize the manager from resource.txt, executed when lauched the manager
@@ -484,16 +494,22 @@ int main(){
 			// try to delete the node if input a node's name, print instructions' help
 			if (temp_instr.size() == 1) {
 				printf("Going to delete this node? y/n\n");
-				char in = 'n';
-				cin>>in;
-				if (in == 'y') DeleteNode(&nodes, &depends, temp_instr.front());
-				else if (in != 'n') printf("ERROR: wrong input\n");
+				string in = "n";
+				getline(cin,in);
+				if(in.size()>1){
+					printf("ERROR: wrong answer\n");
+					continue;
+				}
+				if (in[0] == 'y') DeleteNode(&nodes, &depends, temp_instr.front());
+				else if (in[0] != 'n') printf("ERROR: wrong input\n");
+				continue;
 			}
 			else {
 				printf("ERROR: wrong input format, please check!\n");
 			}
 			printf("Going to print help\n");
 			PrintInstrHelp();
+			continue;
 		}
 	}
     return 0;

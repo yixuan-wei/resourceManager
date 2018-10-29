@@ -1,11 +1,10 @@
 digraph edge_settings{
-    turret[color="green"]
-    turret->bullets[style="" color="green"]
+    turret[color="red"]
+    turret->bullets[style="dotted" color="red"]
     bombs[color="green"]
     bombs->ore[style="" color="green"]
     ore[color="green"]
-    bullets[color="green"]
-    bullets->ore[style="" color="green"]
-    handgun[color="green"]
-    handgun->bullets[style="" color="green"]
+    handgun[color="red"]
+    handgun->bullets[style="dotted" color="red"]
+    bullets->ore[style="dotted" color="red"]
 }

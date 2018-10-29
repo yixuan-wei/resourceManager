@@ -1,9 +1,8 @@
 Graph:
-turret 1 bullets
+turret 0
 bombs 1 ore
 ore 1
-bullets 1 ore
-handgun 1 bullets
+handgun 0
 Dependences:
 bombs ore
 bullets ore

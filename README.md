@@ -2,6 +2,11 @@
 This is a resource manager tool for programming portfolio of SMU Guildhall 2018, 
 specific realization requirements could refer to "requirement.png". <br>
 **Requirements**: C++17, built by g++ (GCC version 6.3.0), using the graphviz open-source tool for visualization of directed tool, only tested and supported for windows and mac OSX
+**Building**: sample building command:
+> g++ -std=C++17 resourceManager.cpp Node.hpp
+**visualization**:
+![SampleGraph](graph.png)
+This is a sample graph for visualization, nodes are ovals with different colors (red for not usable, green for usable, black for not existed), dependences are directed lines between ovals with different colors (green line for existed dependence, red dotted line for not existed one)
 
 ### File Explanation:
 - **resourceManager.cpp**: Responsible for main activity of resource manager, including commands and exact realization for each 
