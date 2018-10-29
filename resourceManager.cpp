@@ -190,11 +190,12 @@ void CreatDependence(list<Node*>* nodes, string from, string to) {
 //visualize the graph using graphviz tool
 // return 0 for success, 1 for failure
 int VisualizaGraph(list<Node*> *nodes, map<string,list<string> >*depends){
-	ofstream dotFile;
-	#ifdef _APPLE_
-	dotFile.open("graphviz/test.dot",ios::out);
+	#ifdef __APPLE__
+	printf("Going to load file in apple device\n");
+	ofstream dotFile("./graphviz/test.dot",ios::out);
 	#endif
 	#ifdef _WIN32
+	ofstream dotFile;
 	printf("going to load Log file\n");
 	dotFile.open("graphviz\\test.dot",ios::out);
 	#endif
@@ -235,8 +236,8 @@ int VisualizaGraph(list<Node*> *nodes, map<string,list<string> >*depends){
 	system(exe.data());
 	system("graph.png");
 	#endif
-	#ifdef _APPLE_
-	exe = "graphviz/mac/dot -Tpng -o graph.png graphviz\\test.dot"
+	#ifdef __APPLE__
+	exe = "graphviz/mac/dot -Tpng -o graph.png graphviz/test.dot";
 	system(exe.data());
 	system("open graph.png");
 	#endif
