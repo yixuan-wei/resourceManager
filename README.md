@@ -1,4 +1,6 @@
 # resourceManager
+**Author**: Yixuan Wei<br>
+**FinishDate**: 2018/10/30<br>
 This is a resource manager tool for programming portfolio of SMU Guildhall 2018, 
 specific realization requirements could refer to "requirement.png". <br>
 **GitHub**: https://github.com/yixuan-wei/resourceManager<br>
@@ -21,6 +23,10 @@ would initialize the dependence relationship from start, unable to change relati
 - **resourceManager.exe**: the successful version built from g++ for windows
 - **resourceManager.out**: the successful version built from g++ for mac OSX
 - **graph.png**: the graph visualization image
+- **graphviz**: related dependencies of graphviz
+  + **test.dot**: generated dot file from graph to be translated in to png by graphviz
+  + **win**: graphviz dependence on windows platform
+  + **apple**: graphviz dependence on mac osx platform
 - **requirement.png**: exact requirements from the SMU Guildhall on resource manager
 
 ### Commands supported:
